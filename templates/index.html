@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Titanic Survival Predictor</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #FFD700;
+            --secondary-color: #8B0000;
+            --text-color: #f0f0f0;
+            --dark-bg: #0a1128;
+            --medium-bg: #1c2541;
+            --light-bg: #3a506b;
+            --accent: #5bc0be;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, var(--dark-bg), var(--medium-bg));
+            color: var(--text-color);
+            line-height: 1.6;
+            min-height: 100vh;
+            background-attachment: fixed;
+        }
+        
+        h1, h2, h3 {
+            font-family: 'Playfair Display', serif;
+            letter-spacing: 1px;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            margin-bottom: 1.5rem;
+            position: relative;
+            padding-bottom: 15px;
+        }
+        
+        h1::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 3px;
+            background: var(--primary-color);
+        }
+        
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 215, 0, 0.2);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+            width: 100%;
+            position: relative;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--accent);
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 12px 15px;
+            margin-bottom: 15px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px solid var(--primary-color);
+            color: white;
+            border-radius: 8px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+        
+        input:focus, select:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 10px rgba(91, 192, 190, 0.5);
+        }
+        
+        button {
+            background: linear-gradient(to right, var(--secondary-color), #A52A2A);
+            border: none;
+            color: var(--primary-color);
+            padding: 14px 30px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+            display: block;
+            margin: 0 auto;
+        }
+        
+        button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: 0.5s;
+        }
+        
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+        }
+        
+        button:hover::before {
+            left: 100%;
+        }
+        
+        button:active {
+            transform: translateY(1px);
+        }
+        
+        #result {
+            margin-top: 30px;
+            padding: 25px;
+            border-radius: 12px;
+            text-align: center;
+            transition: all 0.5s ease;
+            width: 100%;
+        }
+        
+        #modelStatus {
+            margin-bottom: 25px;
+            padding: 12px;
+            border-radius: 8px;
+            background-color: rgba(255, 255, 255, 0.1);
+            text-align: center;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+            border-left: 4px solid transparent;
+        }
+        
+        .status-success {
+            color: #4ade80;
+            border-left-color: #4ade80 !important;
+        }
+        
+        .status-error {
+            color: #f87171;
+            border-left-color: #f87171 !important;
+        }
+
+        /* Form layout for larger screens */
+        @media (min-width: 768px) {
+            form {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 20px;
+                width: 100%;
+            }
+            
+            button {
+                grid-column: span 2;
+                width: 50%;
+            }
+        }
+
+        /* Titanic Ship CSS - Enhanced */
+        .ship-container {
+            position: relative;
+            width: 400px;
+            height: 250px;
+            margin: 30px auto;
+            perspective: 1000px;
+        }
+        
+        .ship {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+            transition: transform 0.8s ease;
+        }
+        
+        .ship-body {
+            position: absolute;
+            width: 100%;
+            height: 100px;
+            bottom: 0;
+            background: linear-gradient(to bottom, var(--secondary-color), #A52A2A);
+            border-radius: 20px 20px 0 0;
+            border: none;
+            clip-path: polygon(0% 20%, 100% 20%, 100% 100%, 0% 100%, 0% 20%, 5% 0%, 95% 0%, 100% 20%, 0% 20%);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+        }
+        
+        .ship-deck {
+            position: absolute;
+            width: 90%;
+            height: 40px;
+            bottom: 100px;
+            left: 5%;
+            background: #FFFFFF;
+            border-radius: 5px;
+            border: 2px solid var(--primary-color);
+            clip-path: polygon(0% 0%, 100% 0%, 95% 100%, 5% 100%);
+            z-index: 2;
+        }
+        
+        .ship-railing {
+            position: absolute;
+            width: 90%;
+            left: 5%;
+            height: 5px;
+            bottom: 95px;
+            background: var(--primary-color);
+            border-radius: 2px;
+            z-index: 3;
+            box-shadow: 0 0 10px var(--primary-color);
+        }
+        
+        .ship-funnel {
+            position: absolute;
+            width: 25px;
+            height: 70px;
+            background: #000000;
+            bottom: 140px;
+            border-radius: 5px 5px 0 0;
+            border: 1px solid var(--primary-color);
+            z-index: 4;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+        
+        .funnel-1 { left: 15%; }
+        .funnel-2 { left: 35%; }
+        .funnel-3 { left: 55%; }
+        .funnel-4 { left: 75%; }
+        
+        .ship-bow {
+            position: absolute;
+            width: 60px;
+            height: 50px;
+            bottom: 0;
+            left: 0;
+            background: var(--secondary-color);
+            clip-path: polygon(0% 100%, 100% 100%, 100% 0%, 50% 20%, 0% 100%);
+            z-index: 1;
+        }
+        
+        .ship-stern {
+            position: absolute;
+            width: 60px;
+            height: 50px;
+            bottom: 0;
+            right: 0;
+            background: var(--secondary-color);
+            clip-path: polygon(100% 100%, 0% 100%, 0% 0%, 50% 20%, 100% 100%);
+            z-index: 1;
+        }
+        
+        .ship-name {
+            position: absolute;
+            width: 100%;
+            text-align: center;
+            bottom: 105px;
+            color: var(--primary-color);
+            font-family: 'Playfair Display', serif;
+            font-size: 28px;
+            font-weight: 700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            letter-spacing: 3px;
+            z-index: 6;
+            text-transform: uppercase;
+        }
+
+        /* Lifeboat CSS - Enhanced */
+        .lifeboat {
+            display: none;
+            position: relative;
+            width: 220px;
+            height: 60px;
+            margin: 30px auto 0 auto;
+            background: linear-gradient(to bottom, #ffe600 60%, #ffd000 100%);
+            border-radius: 60% 60% 80% 80% / 100% 100% 100% 100%;
+            border: 4px solid #a0522d;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+            overflow: visible;
+        }
+        
+        .lifeboat::before {
+            content: '';
+            position: absolute;
+            left: 10px;
+            right: 10px;
+            top: 10px;
+            height: 18px;
+            background: #fffbe6;
+            border-radius: 60% 60% 80% 80% / 100% 100% 100% 100%;
+            z-index: 2;
+            border-bottom: 2px solid #a0522d;
+        }
+        
+        .lifeboat::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: -8px;
+            height: 12px;
+            background: linear-gradient(to bottom, #ffd000 60%, #a0522d 100%);
+            border-radius: 60% 60% 80% 80% / 100% 100% 100% 100%;
+            z-index: 1;
+            opacity: 0.7;
+        }
+        
+        /* Puntas del bote */
+        .lifeboat-tip {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            background: #ffe600;
+            top: 28px;
+            left: -18px;
+            clip-path: polygon(100% 0, 0 50%, 100% 100%);
+            transform: rotate(-10deg);
+            border: 3px solid #a0522d;
+        }
+        
+        .lifeboat-tip.right {
+            left: auto;
+            right: -18px;
+            transform: scaleX(-1) rotate(-10deg);
+        }
+        
+        /* Remos */
+        .lifeboat-oar {
+            position: absolute;
+            width: 70px;
+            height: 7px;
+            background: #ff7f50; /* Coral */
+            border-radius: 4px;
+            top: 48px;
+            left: -60px;
+            transform: rotate(-18deg);
+            box-shadow: 220px 0 #ff7f50;
+        }
+        
+        .lifeboat-oar::after, .lifeboat-oar::before {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background: #ff7f50; /* Coral */
+            border-radius: 0 0 8px 8px;
+            bottom: -4px;
+        }
+        
+        .lifeboat-oar::after {
+            left: 0;
+            border-bottom: 3px solid #a0522d;
+        }
+        
+        .lifeboat-oar::before {
+            left: 220px;
+            border-bottom: 3px solid #a0522d;
+        }
+
+        /* Iceberg CSS - Enhanced */
+        .iceberg {
+            display: none;
+            position: relative;
+            width: 200px;
+            height: 200px;
+            margin: 20px auto;
+            background: linear-gradient(135deg, #00eaff 60%, #0077ff 100%);
+            clip-path: polygon(
+                50% 0%,
+                70% 20%,
+                100% 40%,
+                90% 80%,
+                60% 100%,
+                50% 90%,
+                40% 100%,
+                10% 80%,
+                0% 40%,
+                30% 20%
+            );
+            box-shadow: 0 0 40px 10px #00eaff99, 0 0 80px 10px #0077ff44;
+        }
+        
+        .iceberg::before {
+            content: '';
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            top: 40px;
+            left: 40px;
+            background: linear-gradient(135deg, #e0f7fa 60%, #b3e5fc 100%);
+            clip-path: polygon(
+                50% 0%,
+                80% 30%,
+                100% 60%,
+                80% 100%,
+                50% 80%,
+                20% 100%,
+                0% 60%,
+                20% 30%
+            );
+            opacity: 0.7;
+        }
+        
+        .iceberg::after {
+            content: '';
+            position: absolute;
+            width: 60px;
+            height: 30px;
+            background: #b3e5fc;
+            bottom: 10px;
+            left: 70px;
+            border-radius: 50% 50% 0 0;
+            transform: rotate(180deg);
+            opacity: 0.8;
+        }
+
+        /* Result container styles - Enhanced */
+        .result-container {
+            display: none;
+            text-align: center;
+            margin-top: 30px;
+            padding: 25px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .prediction-text {
+            margin-top: 20px;
+        }
+        
+        .prediction-text h3 {
+            color: var(--accent);
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+        }
+        
+        .prediction-text p {
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+        
+        .survived .lifeboat {
+            display: block;
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        .not-survived .iceberg {
+            display: block;
+            animation: glow 3s ease-in-out infinite;
+        }
+        
+        .survived .prediction-text {
+            color: #4ade80;
+        }
+        
+        .not-survived .prediction-text {
+            color: #f87171;
+        }
+
+        /* Water animation for lifeboat */
+        .survived::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 60px;
+            background: linear-gradient(to bottom, transparent, rgba(0, 100, 255, 0.3));
+            border-radius: 0 0 15px 15px;
+            z-index: -1;
+            animation: water 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(224, 255, 255, 0.5); }
+            50% { box-shadow: 0 0 40px rgba(224, 255, 255, 0.8); }
+        }
+        
+        @keyframes water {
+            0%, 100% { height: 60px; opacity: 0.5; }
+            50% { height: 70px; opacity: 0.7; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Titanic Survival Predictor</h1>
+        <div id="modelStatus" class="{{ 'status-success' if 'successfully' in model_status else 'status-error' }}">
+            Model Status: {{ model_status }}
+        </div>
+
+        <div class="ship-container">
+            <div class="ship">
+                <div class="ship-body"></div>
+                <div class="ship-bow"></div>
+                <div class="ship-stern"></div>
+                <div class="ship-deck"></div>
+                <div class="ship-railing"></div>
+                <div class="ship-name">RMS TITANIC</div>
+                <div class="ship-funnel funnel-1"></div>
+                <div class="ship-funnel funnel-2"></div>
+                <div class="ship-funnel funnel-3"></div>
+                <div class="ship-funnel funnel-4"></div>
+            </div>
+        </div>
+
+        <form id="predictionForm">
+            <div class="form-group">
+                <label for="age">Age</label>
+                <input type="number" id="age" name="age" required placeholder="Enter passenger age">
+            </div>
+            <div class="form-group">
+                <label for="fare">Fare</label>
+                <input type="number" id="fare" name="fare" step="0.01" required placeholder="Enter ticket fare">
+            </div>
+            <div class="form-group">
+                <label for="gender">Gender</label>
+                <select id="gender" name="gender" required>
+                    <option value="" disabled selected>Select gender</option>
+                    <option value="1">Male</option>
+                    <option value="0">Female</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="embarked">Embarked</label>
+                <select id="embarked" name="embarked" required>
+                    <option value="" disabled selected>Select port of embarkation</option>
+                    <option value="0">Cherbourg</option>
+                    <option value="1">Queenstown</option>
+                    <option value="2">Southampton</option>
+                </select>
+            </div>
+            <button type="submit">Predict Survival</button>
+        </form>
+
+        <div id="result" class="result-container">
+            <div class="lifeboat">
+                <div class="lifeboat-tip"></div>
+                <div class="lifeboat-tip right"></div>
+                <div class="lifeboat-oar"></div>
+            </div>
+            <div class="iceberg"></div>
+            <div class="prediction-text"></div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('predictionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = {
+                age: document.getElementById('age').value,
+                fare: document.getElementById('fare').value,
+                gender: document.getElementById('gender').value,
+                embarked: document.getElementById('embarked').value
+            };
+
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+                const data = await response.json();
+                const resultDiv = document.getElementById('result');
+                resultDiv.style.display = 'block';
+                
+                // Show result with animation
+                setTimeout(() => {
+                    resultDiv.className = data.survived ? 'result-container survived' : 'result-container not-survived';
+                    resultDiv.querySelector('.prediction-text').innerHTML = `
+                        <h3>Prediction Result</h3>
+                        <p>Survival Probability: ${(data.probability * 100).toFixed(2)}%</p>
+                        <p>Predicted Survival: ${data.survived ? 'Yes' : 'No'}</p>
+                    `;
+                }, 1000);
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('result').innerHTML = 'Error making prediction';
+            }
+        });
+    </script>
+</body>
+</html>
