@@ -1,10 +1,14 @@
+import os
+os.environ['CUDA_VISIBLE_DEVICES'] = '-1'  # Deshabilitar GPU
+import tensorflow as tf
+tf.config.set_visible_devices([], 'GPU')  # Asegurar que no se use GPU
 from flask import Flask, request, jsonify, render_template
 from tensorflow.keras.models import load_model
 import numpy as np
 
 app = Flask(__name__)
 try:
-    model = load_model('model/titanic_model.h5')
+    model = load_model('model/titanic_model.h5', compile=False)  # No compilar el modelo
     model_status = "Model loaded successfully"
 except Exception as e:
     model_status = f"Error loading model: {str(e)}"
@@ -85,4 +89,5 @@ def predict():
         return jsonify({'error': str(e)}), 400
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    port = int(os.environ.get('PORT', 10000))
+    app.run(host='0.0.0.0', port=port)
